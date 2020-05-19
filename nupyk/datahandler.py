@@ -13,7 +13,9 @@ from .sedreader import SEDReader
 
 
 class BaseHandler(object, metaclass=ABCMeta):
-    """ Base class for SED data """
+    """
+        Base class for SED data
+    """
 
     def __init__(
         self, input_directory: [list, str], output_directory: str = None
@@ -45,7 +47,9 @@ class BaseHandler(object, metaclass=ABCMeta):
 
 class DataReader(BaseHandler):
     """
-        Base class to read SED data
+        Base class to read SED data.
+        - input_directory  : path that contains the SED data files
+        - output_directory : path where the output can be saved
     """
 
     def __init__(
@@ -56,6 +60,18 @@ class DataReader(BaseHandler):
         self.read()
 
     def read(self):
+        """
+            Read SED data in the format provided by http://www.openuniverse.asi.it/
+            Creates a pandas DataFrame 'raw_dataframe'. Each row contains information
+            about the source:
+            - 'name'    : name (str)
+            - 'dec'     : declination (float)
+            - 'ra'      : right ascension (float)
+            - 'nu_peak' : position of the nu peak (float)
+            - 'redshift': redshift (if available) (float)
+            - 'data'    : pandas DataFrame from SEDReader
+
+        """
         sed_files = self.get_files_paths()
 
         sources_data_list = list()
@@ -81,6 +97,9 @@ class DataReader(BaseHandler):
         self._raw_dataframe = sources_dataframe
 
     def get_files_paths(self) -> list:
+        """
+            Creates a list that contains the paths of the SED data files
+        """
         sed_files_paths = list()
         for indir in self._input_dir:
             for dirpath, _, filenames in os.walk(indir):
@@ -92,16 +111,15 @@ class DataReader(BaseHandler):
 
     @property
     def raw_dataframe(self) -> pd.DataFrame:
+        """
+            Getter function for the raw dataframe
+        """
         return self._raw_dataframe
 
-    @raw_dataframe.setter
-    def raw_dataframe(self, df: pd.DataFrame):
-        self._raw_dataframe = df
-
-    def process(self):
-        pass
-
     def save(self, filename: str = None):
+        """
+            Functon to save the raw_dataframe
+        """
         if self._output_dir is not None:
             directory = self._output_dir
         else:
@@ -118,7 +136,14 @@ class DataReader(BaseHandler):
 
 class DataHandler(DataReader):
     """
-        Base class to read SED data
+        Base class to read and process SED data.
+
+        - input_directory  : path that contains the SED data files
+        - output_directory : path where the output can be saved
+        - agg_func         : list of functions that will be applied to the
+                             pandas grouped dataframe
+        - freq_bins        : list of the frequency bin margins to group
+                             the dataframe
     """
 
     def __init__(
@@ -147,6 +172,7 @@ class DataHandler(DataReader):
                     feature_names.append("{0}_flux_{1}".format(name, func))
 
         else:
+            freq_bins = np.array(freq_bins)
             feature_names = list()
             freq_bins_names = list()
             for name in range(len(freq_bins)):
@@ -170,6 +196,10 @@ class DataHandler(DataReader):
         self.process()
 
     def process(self):
+        """
+            Process the raw_dataframe to a processed_dataframe that contains
+            the requested features for each source.
+        """
         data = self.raw_dataframe
 
         proc_df = self.processed_dataframe
@@ -204,6 +234,11 @@ class DataHandler(DataReader):
         self._processed_dataframe = proc_df
 
     def calculate_freq_index(self, data: pd.DataFrame) -> list:
+        """
+            Calculate the index of the frequency bin for each observation
+            of the source contained in the dataframe provided by the SEDReader.
+            Returns a list of the indexes.
+        """
         frequency = data["freq"].to_numpy()
         freq_bins_index = np.asarray(
             (
@@ -216,28 +251,38 @@ class DataHandler(DataReader):
         )
         return [self._frequency_bins_names[i] for i in freq_bins_index]
 
-    def calculate_means(self, df: pd.DataFrame) -> pd.DataFrame:
-        df["freq_bins_index"] = self.calculate_freq_index(df)
-        means = df.groupby("freq_bins_index").mean()
-        return means
-
     @property
     def frequency_bins(self) -> np.array:
+        """
+            Getter function for the frequency bins
+        """
         return self._frequency_bins
 
     @property
     def frequency_bins_names(self) -> list:
+        """
+            Getter function for the frequency bins names
+        """
         return self._frequency_bins_names
 
     @property
     def feature_names(self) -> list:
+        """
+            Getter function for the feature names
+        """
         return self._feature_names
 
     @property
     def processed_dataframe(self) -> pd.DataFrame:
+        """
+            Getter function for the processed dataframe
+        """
         return self._processed_dataframe
 
     def save(self, filename: str = None):
+        """
+            Functon to save the processed_dataframe
+        """
         if self._output_dir is not None:
             directory = self._output_dir
         else:

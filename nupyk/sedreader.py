@@ -35,8 +35,14 @@ class BaseReader(object, metaclass=ABCMeta):
 
 class SEDReader(BaseReader):
     """
-        Object that reads a raw SED data file and produces a
-        dataframe with the required features
+        Read SED data in the format provided by http://www.openuniverse.asi.it/
+        Provides a pandas dataframe that for each row (measurement) contains
+        - freq      : frequency of the observation
+        - flux      : flux measured
+        - flux_plus : flux upper limit
+        - flux_min  : flux lower limit
+        - cat       : catalog
+        If the measurements are upper limits they are removed.
     """
 
     def read(self):
