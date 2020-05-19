@@ -56,7 +56,6 @@ class DataReader(BaseHandler):
         self, input_directory: [list, str], output_directory: str = None
     ) -> None:
         super().__init__(input_directory, output_directory)
-        print("Reading files...")
         self.read()
 
     def read(self):
@@ -75,7 +74,7 @@ class DataReader(BaseHandler):
         sed_files = self.get_files_paths()
 
         sources_data_list = list()
-        for i, filepath in enumerate(tqdm(sed_files[:10])):
+        for i, filepath in enumerate(tqdm(sed_files, desc="Reading files: ")):
             filename = os.path.basename(os.path.normpath(filepath)).split("_")
             source_name = filename[4].replace(".", "")
             redshift = np.float(filename[5]) if len(filename) == 6 else np.nan
@@ -115,6 +114,9 @@ class DataReader(BaseHandler):
             Getter function for the raw dataframe
         """
         return self._raw_dataframe
+
+    def process(self):
+        pass
 
     def save(self, filename: str = None):
         """
@@ -192,7 +194,6 @@ class DataHandler(DataReader):
             processed_dataframe.columns.tolist() + self._feature_names, axis=1
         )
         self._processed_dataframe = processed_dataframe
-        print("Processing data...")
         self.process()
 
     def process(self):
@@ -204,7 +205,9 @@ class DataHandler(DataReader):
 
         proc_df = self.processed_dataframe
 
-        for i, sed_data in enumerate(tqdm(data["data"])):
+        for i, sed_data in enumerate(
+            tqdm(data["data"], desc="Processing files: ")
+        ):
             sed_data["freq_bins_index"] = self.calculate_freq_index(sed_data)
             freq_bin_group = (
                 sed_data.drop(["flux_min", "flux_plus"], axis=1)
