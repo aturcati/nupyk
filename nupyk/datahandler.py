@@ -297,4 +297,7 @@ class DataHandler(DataReader):
             df.to_pickle(directory.joinpath("processed_dataframe.pkl"))
 
     def save_raw(self, filename: str = None):
+        """
+            Functon to save the raw_dataframe
+        """
         super().save(filename)
