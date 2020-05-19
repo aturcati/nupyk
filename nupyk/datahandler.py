@@ -3,6 +3,7 @@
 from abc import ABCMeta, abstractmethod
 
 import os
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -100,8 +101,19 @@ class DataReader(BaseHandler):
     def process(self):
         pass
 
-    def save(self):
-        pass
+    def save(self, filename: str = None):
+        if self._output_dir is not None:
+            directory = self._output_dir
+        else:
+            directory = Path.cwd().joinpath("output")
+
+        Path(directory).mkdir(parents=True, exist_ok=True)
+
+        df = self._raw_dataframe
+        if filename is not None:
+            df.to_pickle(directory.joinpath(filename + ".pkl"))
+        else:
+            df.to_pickle(directory.joinpath("raw_dataframe.pkl"))
 
 
 class DataHandler(DataReader):
@@ -191,7 +203,7 @@ class DataHandler(DataReader):
 
         self._processed_dataframe = proc_df
 
-    def calculate_freq_index(self, data: pd.DataFrame):
+    def calculate_freq_index(self, data: pd.DataFrame) -> list:
         frequency = data["freq"].to_numpy()
         freq_bins_index = np.asarray(
             (
@@ -204,7 +216,7 @@ class DataHandler(DataReader):
         )
         return [self._frequency_bins_names[i] for i in freq_bins_index]
 
-    def calculate_means(self, df: pd.DataFrame):
+    def calculate_means(self, df: pd.DataFrame) -> pd.DataFrame:
         df["freq_bins_index"] = self.calculate_freq_index(df)
         means = df.groupby("freq_bins_index").mean()
         return means
@@ -224,3 +236,20 @@ class DataHandler(DataReader):
     @property
     def processed_dataframe(self) -> pd.DataFrame:
         return self._processed_dataframe
+
+    def save(self, filename: str = None):
+        if self._output_dir is not None:
+            directory = self._output_dir
+        else:
+            directory = Path.cwd().joinpath("output")
+
+        Path(directory).mkdir(parents=True, exist_ok=True)
+
+        df = self._processed_dataframe
+        if filename is not None:
+            df.to_pickle(directory.joinpath(filename + ".pkl"))
+        else:
+            df.to_pickle(directory.joinpath("processed_dataframe.pkl"))
+
+    def save_raw(self, filename: str = None):
+        super().save(filename)
