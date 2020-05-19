@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from .sedreader import SEDReader
 
-colors = sns.color_palette("colorblind", 10)
+sns.color_palette("colorblind")
 
 class BaseSourcePlot(object, metaclass=ABCMeta):
     """
@@ -55,7 +55,6 @@ class SEDReaderSourcePlot(BaseSourcePlot):
             yerr=[df["flux_plus"] - df["flux"], df["flux"] - df["flux_min"]],
             ls="",
             marker=".",
-            color=colors[0],
             alpha=0.2,
             label='Raw Data'
         )
@@ -91,7 +90,6 @@ class ProcessedSourcePlot(BaseSourcePlot):
                 source[yn],
                 marker="o",
                 markersize=10,
-                color=colors[i],
                 label="Proc. Data ({0})".format(xn.split('_')[0])
             )
 

@@ -234,6 +234,7 @@ class DataHandler(DataReader):
                             i, "{0}_flux_{1}".format(name, func)
                         ] = np.nan
 
+        proc_df[self._feature_names] = proc_df[self._feature_names].fillna(0.0)
         self._processed_dataframe = proc_df
 
     def calculate_freq_index(self, data: pd.DataFrame) -> list:
