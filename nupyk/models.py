@@ -12,20 +12,24 @@ import pickle
 import xgboost as xgb
 from xgboost.sklearn import XGBRegressor
 
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+
 
 class BaseTrainer(metaclass=ABCMeta):
     """
         Base classe to define a model trainer
     """
 
-    def __init__(self,
-                 data: [str, pd.DataFrame] = None,
-                 directory: str = None,
-                 model: XGBRegressor = None
-        ):
-        """
-            directory : path in which the defined model will be saved
-        """
+    def __init__(
+        self,
+        data: [str, pd.DataFrame] = None,
+        directory: str = None,
+        model=None,
+        random_state=0,
+    ):
+        self._random_state = random_state
+
         if directory is not None:
             self._output_dir = directory
         else:
@@ -45,6 +49,7 @@ class BaseTrainer(metaclass=ABCMeta):
         """
             load dataframe from pickled file
         """
+        filepath = Path(filepath)
         dataframe = pd.read_pickle(filepath)
         self._dataframe = dataframe
 
@@ -78,7 +83,8 @@ class BaseTrainer(metaclass=ABCMeta):
         """
             load model from pickled file
         """
-        model = pickle.load(open(filepath))
+        filepath = Path(filepath)
+        model = pickle.load(open(filepath, "rb"))
         self._model = model
 
     @property
@@ -119,17 +125,60 @@ class XGBTrainer(BaseTrainer):
         Trainer based on XGBoost library
     """
 
-    def def_model(self, **kwargs):
-        model = XGBRegressor(**kwargs)
+    def process(
+        self,
+        target="nu_peak",
+        ignored_features=["name", "nu_peak", "redshift"],
+        train_size = 0.8,
+    ):
+        self._target_name = target
+        self._ignored_features_names = ignored_features
+        self._feature_names = [
+            feat_name
+            for feat_name in self._dataframe.columns
+            if (
+                (feat_name not in self._ignored_features_names)
+                and (feat_name not in self._target_name)
+            )
+        ]
+
+        x_train, x_test, y_train, y_test = train_test_split(
+            self._dataframe[self._feature_names],
+            self._dataframe[self._target_name],
+            train_size = train_size,
+            random_state = self._random_state,
+        )
+
+        self._x_train = x_train
+        self._x_test = x_test
+        self._target_train = y_train
+        self._target_test = y_test
+
+    @property
+    def target_name(self):
+        return self._target_name
+
+    @property
+    def ignored_features_names(self):
+        return self._ignored_features_names
+
+    @property
+    def feature_names(self):
+        return self._feature_names
+
+    def def_model(self, parameters: dict = None):
+        model = XGBRegressor()
+
+        if parameters is not None:
+            model.set_params(**parameters)
+
         self._model = model
 
     def fit_model(self):
-        pass
+        model = self._model
+        model.fit(self._x_train, self._target_train)
 
     def generate_metrics(self):
-        pass
-
-    def process(self):
         pass
 
     def save_model(self, filename: str = None):
@@ -139,6 +188,8 @@ class XGBTrainer(BaseTrainer):
 
         model = self._model
         if filename is not None:
-            pickle.dump(model, open(directory.joinpath(filename + ".pkl"), "wb"))
+            pickle.dump(
+                model, open(directory.joinpath(filename + ".pkl"), "wb")
+            )
         else:
             pickle.dump(model, open(directory.joinpath("xgb_model.pkl"), "wb"))
