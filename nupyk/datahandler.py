@@ -111,7 +111,7 @@ class DataReader(BaseHandler):
     @property
     def raw_dataframe(self) -> pd.DataFrame:
         """
-            Getter function for the raw dataframe
+            Getter method for the raw dataframe
         """
         return self._raw_dataframe
 
@@ -191,7 +191,9 @@ class DataHandler(DataReader):
 
         processed_dataframe = self.raw_dataframe.drop("data", axis=1)
         processed_dataframe = processed_dataframe.reindex(
-            processed_dataframe.columns.tolist() + self._feature_names, axis=1
+            processed_dataframe.columns.tolist() + self._feature_names,
+            axis=1,
+            fill_value=0.0,
         )
         self._processed_dataframe = processed_dataframe
         self.process()
@@ -258,28 +260,28 @@ class DataHandler(DataReader):
     @property
     def frequency_bins(self) -> np.array:
         """
-            Getter function for the frequency bins
+            Getter method for the frequency bins
         """
         return self._frequency_bins
 
     @property
     def frequency_bins_names(self) -> list:
         """
-            Getter function for the frequency bins names
+            Getter method for the frequency bins names
         """
         return self._frequency_bins_names
 
     @property
     def feature_names(self) -> list:
         """
-            Getter function for the feature names
+            Getter method for the feature names
         """
         return self._feature_names
 
     @property
     def processed_dataframe(self) -> pd.DataFrame:
         """
-            Getter function for the processed dataframe
+            Getter method for the processed dataframe
         """
         return self._processed_dataframe
 
