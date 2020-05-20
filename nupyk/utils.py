@@ -147,7 +147,7 @@ class PredVsTargetPlot(BasePlot):
 
         ax.plot(x, x, ls="--", color="black")
 
-        ax.set_xlabel("True")
+        ax.set_xlabel("Truth")
         ax.set_ylabel("Prediction")
 
         ax.grid(ls="--", alpha=0.2)
