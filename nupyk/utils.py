@@ -135,20 +135,31 @@ class PredVsTargetPlot(BasePlot):
 
         x, y_median, y_up, y_down = self.calc_plot_lines()
 
-        scatter_plot = ax.plot(target, pred, ls="", marker="o", alpha=0.1)
+        scatter_plot = ax.plot(
+            target, pred, ls="", marker="o", alpha=0.2, label="Entries"
+        )
         if self._color is not None:
             col = self._color
         else:
             col = scatter_plot[0].get_color()
 
-        ax.plot(x, y_median, color=col, lw=2)
-        ax.plot(x, y_up, color=col, ls="dotted", lw=2)
+        ax.plot(x, y_median, color=col, lw=2, label="Median")
+        ax.plot(
+            x,
+            y_up,
+            color=col,
+            ls="dotted",
+            lw=2,
+            label=r"5% and 95% quantiles",
+        )
         ax.plot(x, y_down, color=col, ls="dotted", lw=2)
 
         ax.plot(x, x, ls="--", color="black")
 
         ax.set_xlabel("Truth")
         ax.set_ylabel("Prediction")
+
+        ax.legend(frameon=False)
 
         ax.grid(ls="--", alpha=0.2)
 
