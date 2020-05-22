@@ -48,7 +48,7 @@ setup(
     download_url='https://github.com/aturcati/nupyk',
 
     # List of keyword arguments
-    keywords=["Science", "Astrophysics", , "Machine Learning", "Blazar", "AGN"],
+    keywords=["Science", "Astrophysics", "Machine Learning", "Blazar", "AGN"],
 
     # List of packages to install with this one
     install_requires=[
