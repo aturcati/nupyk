@@ -10,6 +10,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from .sedreader import SEDReader
+from .utils import timing
 
 
 class BaseHandler(object, metaclass=ABCMeta):
@@ -58,6 +59,7 @@ class DataReader(BaseHandler):
         super().__init__(input_directory, output_directory)
         self.read()
 
+    @timing
     def read(self):
         """
             Read SED data in the format provided by http://www.openuniverse.asi.it/
@@ -198,6 +200,7 @@ class DataHandler(DataReader):
         self._processed_dataframe = processed_dataframe
         self.process()
 
+    @timing
     def process(self):
         """
             Process the raw_dataframe to a processed_dataframe that contains
