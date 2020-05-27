@@ -7,6 +7,8 @@ import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
 
+plt.style.use("default")
+
 from .sedreader import SEDReader
 
 sns.color_palette("colorblind")
