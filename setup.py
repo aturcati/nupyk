@@ -58,6 +58,7 @@ setup(
         'tqdm>=4.43',
         'xgboost>=1.0.2',
         'seaborn>=0.10',
+        'pandas-profiling>=2.8.0'
     ],
 
     # https://pypi.org/classifiers/
