@@ -147,14 +147,14 @@ class XGBRTrainer(BaseTrainer):
     ):
         self._target_name = target
         self._ignored_features_names = ignored_features
-        self._feature_names = [
+        self._feature_names = sorted([
             feat_name
             for feat_name in self._dataframe.columns
             if (
                 (feat_name not in self._ignored_features_names)
                 and (feat_name not in self._target_name)
             )
-        ]
+        ])
 
         x_train, x_test, y_train, y_test = train_test_split(
             self._dataframe[self._feature_names],

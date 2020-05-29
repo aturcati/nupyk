@@ -51,12 +51,19 @@ class DataReader(BaseHandler):
         Base class to read SED data.
         - input_directory  : path that contains the SED data files
         - output_directory : path where the output can be saved
+        - training_mode    : True if reading training data
     """
 
     def __init__(
-        self, input_directory: [list, str], output_directory: str = None
+        self,
+        input_directory: [list, str],
+        output_directory: str = None,
+        trainin_mode: bool = True,
     ) -> None:
         super().__init__(input_directory, output_directory)
+
+        self._training_mode = trainin_mode
+
         self.read()
 
     @timing
@@ -76,23 +83,44 @@ class DataReader(BaseHandler):
         sed_files = self.get_files_paths()
 
         sources_data_list = list()
-        for i, filepath in enumerate(tqdm(sed_files, desc="Reading files: ")):
-            filename = os.path.basename(os.path.normpath(filepath)).split("_")
-            source_name = filename[4].replace(".", "")
-            redshift = np.float(filename[5]) if len(filename) == 6 else np.nan
-            try:
-                sources_data_list.append(
-                    {
-                        "name": source_name,
-                        "dec": np.float(filename[3]),
-                        "ra": np.float(filename[2]),
-                        "nu_peak": np.float(filename[1]),
-                        "redshift": redshift,
-                        "data": SEDReader(filepath).dataframe,
-                    }
+        if self._training_mode:
+            for i, filepath in enumerate(
+                tqdm(sed_files, desc="Reading files: ")
+            ):
+                filename = os.path.basename(os.path.normpath(filepath)).split(
+                    "_"
                 )
-            except:
-                print("Error reading file: {0}".format(filepath))
+                source_name = filename[4].replace(".", "")
+                redshift = (
+                    np.float(filename[5]) if len(filename) == 6 else np.nan
+                )
+                try:
+                    sources_data_list.append(
+                        {
+                            "name": source_name,
+                            "dec": np.float(filename[3]),
+                            "ra": np.float(filename[2]),
+                            "nu_peak": np.float(filename[1]),
+                            "redshift": redshift,
+                            "data": SEDReader(filepath).dataframe,
+                        }
+                    )
+                except:
+                    print("Error reading file: {0}".format(filepath))
+        else:
+            for i, filepath in enumerate(
+                tqdm(sed_files, desc="Reading files: ")
+            ):
+                filename = os.path.basename(os.path.normpath(filepath))
+                try:
+                    sources_data_list.append(
+                        {
+                            "name": filename,
+                            "data": SEDReader(filepath).dataframe,
+                        }
+                    )
+                except:
+                    print("Error reading file: {0}".format(filepath))
 
         sources_dataframe = pd.DataFrame(sources_data_list)
         self._raw_dataframe = sources_dataframe
@@ -101,13 +129,18 @@ class DataReader(BaseHandler):
         """
             Creates a list that contains the paths of the SED data files
         """
+
         sed_files_paths = list()
         for indir in self._input_dir:
-            for dirpath, _, filenames in os.walk(indir):
-                for f in filenames:
-                    sed_files_paths.append(
-                        os.path.abspath(os.path.join(dirpath, f))
-                    )
+            if os.path.isdir(indir):
+                for dirpath, _, filenames in os.walk(indir):
+                    for f in filenames:
+                        sed_files_paths.append(
+                            os.path.abspath(os.path.join(dirpath, f))
+                        )
+            elif os.path.isfile(indir):
+                sed_files_paths.append(os.path.abspath(indir))
+
         return sed_files_paths
 
     @property
@@ -154,9 +187,10 @@ class DataHandler(DataReader):
         self,
         input_directory: [list, str],
         output_directory: str = None,
+        training_mode: bool = True,
         **kwargs
     ) -> None:
-        super().__init__(input_directory, output_directory)
+        super().__init__(input_directory, output_directory, training_mode)
 
         agg_func_list = kwargs.get("agg_func")
         if agg_func_list == None:
