@@ -58,11 +58,11 @@ class DataReader(BaseHandler):
         self,
         input_directory: [list, str],
         output_directory: str = None,
-        trainin_mode: bool = True,
+        training_mode: bool = True,
     ) -> None:
         super().__init__(input_directory, output_directory)
 
-        self._training_mode = trainin_mode
+        self._training_mode = training_mode
 
         self.read()
 

@@ -41,15 +41,20 @@ class BasePredictor(metaclass=ABCMeta):
 
 class XGBRPredictor(BasePredictor):
     def __init__(
-        self, data: tuple = None, model: object = None, verbose: bool = False
+        self,
+        data: tuple = None,
+        model: object = None,
+        verbose: bool = False,
+        **kwargs
     ):
         super().__init__(data, model)
-        self.process()
+        freq_bins = kwargs.get("freq_bins")
+        self.process(freq_bins)
         self.predict(verbose)
 
-    def process(self):
+    def process(self, freq_bins=None):
         processed_dataframe = DataHandler(
-            input_directory=self._data, training_mode=False
+            input_directory=self._data, training_mode=False, freq_bins=freq_bins
         ).processed_dataframe
 
         processed_dataframe["ra"] = self._source_ra
