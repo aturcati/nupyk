@@ -59,6 +59,7 @@ class SEDReader(BaseReader):
             ],
         )
         df = pd.DataFrame(f)
+        df = df[df.flux >= 0.0]
         df["uplim"] = pd.Series(
             np.logical_and(
                 df["flux"] == df["flux_plus"], df["flux"] == df["flux_min"]

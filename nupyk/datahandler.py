@@ -223,7 +223,17 @@ class DataHandler(DataReader):
 
         self._frequency_bins = freq_bins
         self._frequency_bins_names = freq_bins_names
-        self._feature_names = feature_names
+
+        experiments = np.unique(
+            np.hstack(
+                [
+                    self.raw_dataframe["data"].to_list()[i].cat.to_list()
+                    for i in range(len(self.raw_dataframe.index))
+                ]
+            )
+        )
+
+        self._feature_names = [*feature_names, *experiments]
 
         processed_dataframe = self.raw_dataframe.drop("data", axis=1)
         processed_dataframe = processed_dataframe.reindex(
@@ -231,6 +241,9 @@ class DataHandler(DataReader):
             axis=1,
             fill_value=0.0,
         )
+        processed_dataframe[experiments] = processed_dataframe[
+            experiments
+        ].astype(np.bool)
         self._processed_dataframe = processed_dataframe
         self.process()
 
@@ -247,9 +260,12 @@ class DataHandler(DataReader):
         for i, sed_data in enumerate(
             tqdm(data["data"], desc="Processing files: ")
         ):
+            experiments = np.unique(sed_data["cat"].to_list())
+            proc_df[experiments] = True
+
             sed_data["freq_bins_index"] = self.calculate_freq_index(sed_data)
             freq_bin_group = (
-                sed_data.drop(["flux_min", "flux_plus"], axis=1)
+                sed_data.drop(["flux_min", "flux_plus", "cat"], axis=1)
                 .groupby("freq_bins_index")
                 .agg(self._agg_func_list)
             )
